@@ -36,5 +36,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    // Using r1.3 during project
+    compile 'org.tensorflow:tensorflow-android:+'
     testCompile 'junit:junit:4.12'
 }
