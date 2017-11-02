@@ -60,15 +60,44 @@ public class Home extends AppCompatActivity {
             }
         });
 
+        deRiskedTensorFlow();
+    }
+
+    @Override
+    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        if (resultCode == RESULT_OK && reqCode == UPLOAD_PICTURE_REQUEST_CODE) {
+            try {
+                final Uri imageUri = data.getData();
+                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                imageView.setImageBitmap(selectedImage);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Toast.makeText(Home.this, "Something went wrong uploading Image", Toast.LENGTH_LONG).show();
+            }
+        } else if (resultCode == RESULT_OK && reqCode == TAKE_PICTURE_REQUEST_CODE) {
+
+            try {
+                final Bitmap photo = (Bitmap) data.getExtras().get("data");
+                imageView.setImageBitmap(photo);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(Home.this, "Something went wrong taking Image", Toast.LENGTH_LONG).show();
+            }
+        } else {
+            Toast.makeText(Home.this, "You haven't picked Image",Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void deRiskedTensorFlow() {
         /** One time initialization: */
         AssetManager assetManager = getAssets();
         TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/graph.pb");
 
         float[] input = {5.0F};
         tensorflow.feed("input", input);
-
-//        float[] input2 = {3.0F};
-//        tensorflow.feed("b", input2);
 
         String outputNode = "output";
         String[] outputNodes = {outputNode};
@@ -78,35 +107,6 @@ public class Home extends AppCompatActivity {
         tensorflow.fetch(outputNode, output);
 
         System.out.println("fetched the output " + output[0]);
-    }
-
-    @Override
-    protected void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-
-        // reqCode == TAKE_PICTURE_REQUEST_CODE &&
-        if (resultCode == RESULT_OK && reqCode == UPLOAD_PICTURE_REQUEST_CODE) {
-            try {
-                final Uri imageUri = data.getData();
-                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                imageView.setImageBitmap(selectedImage);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Toast.makeText(Home.this, "Something went wrong", Toast.LENGTH_LONG).show();
-            }
-        } else if (resultCode == RESULT_OK && reqCode == TAKE_PICTURE_REQUEST_CODE) {
-
-            try {
-                final Bitmap photo = (Bitmap) data.getExtras().get("data");
-                imageView.setImageBitmap(photo);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(Home.this, "Something went wrong", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            Toast.makeText(Home.this, "You haven't picked Image",Toast.LENGTH_LONG).show();
-        }
     }
 
     /**
