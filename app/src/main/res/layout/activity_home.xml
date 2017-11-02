@@ -12,7 +12,6 @@
         android:layout_height="47dp"
         android:layout_marginTop="32dp"
         android:text="TextView"
-        app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/button3"
         app:layout_constraintTop_toTopOf="parent" />
@@ -27,14 +26,17 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="32dp" />
 
-    <VideoView
-        android:id="@+id/videoView"
-        android:layout_width="356dp"
-        android:layout_height="431dp"
-        android:layout_marginBottom="0dp"
-        android:layout_marginTop="0dp"
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="357dp"
+        android:layout_height="254dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:layout_editor_absoluteX="1dp" />
+        app:srcCompat="@mipmap/ic_launcher"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        tools:layout_editor_absoluteY="249dp"
+        tools:layout_editor_absoluteX="9dp"
+        app:layout_constraintHorizontal_bias="0.166" />
 
 </android.support.constraint.ConstraintLayout>
