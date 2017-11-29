@@ -25,6 +25,7 @@ public class Home extends AppCompatActivity {
     ImageView deblurredView;
     Button uploadPicButton;
     Button takePicButton;
+    TensorFlowInferenceInterface tensorflow;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -33,8 +34,14 @@ public class Home extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        System.out.println("On Create..");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        // Tensorflow
+        AssetManager assetManager = getAssets();
+        tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/graph_image.pb");
+
 
         uploadPicButton = (Button) findViewById(R.id.uploadPicButton);
         takePicButton = (Button) findViewById(R.id.takePicButton);
@@ -60,7 +67,7 @@ public class Home extends AppCompatActivity {
             }
         });
 
-        deRiskedTensorFlow();
+//        deRiskedTensorFlow();
     }
 
     @Override
@@ -72,7 +79,12 @@ public class Home extends AppCompatActivity {
                 final Uri imageUri = data.getData();
                 final InputStream imageStream = getContentResolver().openInputStream(imageUri);
                 final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                imageView.setImageBitmap(selectedImage);
+
+                // Deblur the image
+                // TODO: Set image bitmap to output of deblurImage
+                Bitmap deblurred = deblurImage(selectedImage);
+
+                imageView.setImageBitmap(deblurred);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 Toast.makeText(Home.this, "Something went wrong uploading Image", Toast.LENGTH_LONG).show();
@@ -80,8 +92,13 @@ public class Home extends AppCompatActivity {
         } else if (resultCode == RESULT_OK && reqCode == TAKE_PICTURE_REQUEST_CODE) {
 
             try {
-                final Bitmap photo = (Bitmap) data.getExtras().get("data");
-                imageView.setImageBitmap(photo);
+                final Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+
+                // Deblur the image
+                // TODO: Set image bitmap to output of deblurImage
+                Bitmap deblurred = deblurImage(bitmap);
+
+                imageView.setImageBitmap(deblurred);
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(Home.this, "Something went wrong taking Image", Toast.LENGTH_LONG).show();
@@ -89,6 +106,37 @@ public class Home extends AppCompatActivity {
         } else {
             Toast.makeText(Home.this, "You haven't picked Image",Toast.LENGTH_LONG).show();
         }
+    }
+
+    private Bitmap deblurImage(Bitmap bitmap) {
+        int[] intValues = new int[bitmap.getHeight() * bitmap.getWidth()];
+        float[] floatValues = new float[intValues.length * 3];
+        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+
+        for (int i = 0; i < intValues.length; i++) {
+            final int val = -intValues[i];
+            floatValues[i * 3 + 0] = (val >> 16) & 0xFF;
+            floatValues[i * 3 + 1] = (val >> 8) & 0xFF;
+            floatValues[i * 3 + 2] = val & 0xFF;
+        }
+
+        tensorflow.feed("corrupted", floatValues, 1, bitmap.getWidth(), bitmap.getHeight(), 3);
+
+        String outputNode = "deblurred";
+        String[] outputNodes = {outputNode};
+        tensorflow.run(outputNodes);
+
+        float[] output = new float[floatValues.length];
+        tensorflow.fetch(outputNode, output);
+
+        int[] finalImage = new int[floatValues.length];
+        for (int i = 0; i < intValues.length; i++) {
+            finalImage[i] = (int) (output[i]);
+        }
+
+        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
+
+        return deblurredBitmap;
     }
 
     private void deRiskedTensorFlow() {
