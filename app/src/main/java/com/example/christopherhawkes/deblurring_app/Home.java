@@ -131,7 +131,7 @@ public class Home extends AppCompatActivity {
         tensorflow.fetch(outputNode, output);
 
         int[] finalImage = new int[floatValues.length];
-        for (int i = 0; i < byteValues.length; i++) {
+        for (int i = 0; i < byteValues.length*3; i++) {
             finalImage[i] = (int) (output[i]);
         }
 //        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
@@ -146,7 +146,6 @@ public class Home extends AppCompatActivity {
                 int r = (int) finalImage[count + 0];
                 int g = (int) finalImage[count + 1];
                 int b = (int) finalImage[count + 2];
-                int lol = Color.argb(a, r, g, b);
                 deblurredBitmap.setPixel(x, y, Color.argb(a, r, g, b));
 
                 count = count+3;
