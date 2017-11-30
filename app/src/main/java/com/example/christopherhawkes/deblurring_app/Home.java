@@ -47,7 +47,7 @@ public class Home extends AppCompatActivity {
         uploadPicButton = (Button) findViewById(R.id.uploadPicButton);
         takePicButton = (Button) findViewById(R.id.takePicButton);
         imageView = (ImageView) findViewById(R.id.imageView);
-        imageView = (ImageView) findViewById(R.id.imageView2);
+        deblurredView = (ImageView) findViewById(R.id.imageView2);
 
         uploadPicButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,8 +98,8 @@ public class Home extends AppCompatActivity {
                 // Deblur the image
                 // TODO: Set image bitmap to output of deblurImage
                 Bitmap deblurred = deblurImage(bitmap);
-
-                imageView.setImageBitmap(deblurred);
+                imageView.setImageBitmap(bitmap);
+                deblurredView.setImageBitmap(deblurred);
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(Home.this, "Something went wrong taking Image", Toast.LENGTH_LONG).show();
@@ -110,18 +110,18 @@ public class Home extends AppCompatActivity {
     }
 
     private Bitmap deblurImage(Bitmap bitmap) {
-        int[] intValues = new int[bitmap.getHeight() * bitmap.getWidth()];
-        float[] floatValues = new float[intValues.length * 3];
-        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        int[] byteValues = new int[bitmap.getHeight() * bitmap.getWidth()];
+        float[] floatValues = new float[byteValues.length * 3];
+        bitmap.getPixels(byteValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        for (int i = 0; i < intValues.length; i++) {
-            final int val = -intValues[i];
-            floatValues[i * 3 + 0] = (val >> 16) & 0xFF;
-            floatValues[i * 3 + 1] = (val >> 8) & 0xFF;
-            floatValues[i * 3 + 2] = val & 0xFF;
+        for (int i = 0; i < byteValues.length; i++) {
+            final int val = byteValues[i];
+            floatValues[i * 3 + 0] = (val >> 16) & 0xff;
+            floatValues[i * 3 + 1] = (val >> 8) & 0xff;
+            floatValues[i * 3 + 2] = val & 0xff;
         }
 
-        tensorflow.feed("corrupted", floatValues, 1, bitmap.getWidth(), bitmap.getHeight(), 3);
+        tensorflow.feed("corrupted", floatValues, 1, bitmap.getHeight(), bitmap.getWidth(),3);
 
         String outputNode = "deblurred";
         String[] outputNodes = {outputNode};
@@ -131,7 +131,7 @@ public class Home extends AppCompatActivity {
         tensorflow.fetch(outputNode, output);
 
         int[] finalImage = new int[floatValues.length];
-        for (int i = 0; i < intValues.length; i++) {
+        for (int i = 0; i < byteValues.length; i++) {
             finalImage[i] = (int) (output[i]);
         }
 //        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
@@ -140,16 +140,16 @@ public class Home extends AppCompatActivity {
         Bitmap deblurredBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         // Iterate through each pixel in the difference bitmap
         int count = 0;
-        for(int x = 0; x < bitmap.getWidth(); x++) {
-            for(int y = 0; y < bitmap.getHeight(); y++) {
-                int a = 255;
-                int r = finalImage[count + 0];
-                int g = finalImage[count + 1];
-                int b = finalImage[count + 2];
-
+        for(int y = 0; y < bitmap.getHeight(); y++) {
+            for(int x = 0; x < bitmap.getWidth(); x++) {
+                 int a = 255;
+                int r = (int) finalImage[count + 0];
+                int g = (int) finalImage[count + 1];
+                int b = (int) finalImage[count + 2];
+                int lol = Color.argb(a, r, g, b);
                 deblurredBitmap.setPixel(x, y, Color.argb(a, r, g, b));
 
-                count ++;
+                count = count+3;
             }
         }
 

@@ -20,7 +20,7 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="357dp"
+        android:layout_width="360dp"
         android:layout_height="220dp"
         app:layout_constraintHorizontal_bias="0.666"
         app:layout_constraintLeft_toLeftOf="parent"
