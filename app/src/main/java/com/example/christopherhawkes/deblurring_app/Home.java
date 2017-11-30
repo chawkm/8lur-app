@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -133,8 +134,25 @@ public class Home extends AppCompatActivity {
         for (int i = 0; i < intValues.length; i++) {
             finalImage[i] = (int) (output[i]);
         }
+//        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
 
-        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
+        //--------------
+        Bitmap deblurredBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        // Iterate through each pixel in the difference bitmap
+        int count = 0;
+        for(int x = 0; x < bitmap.getWidth(); x++) {
+            for(int y = 0; y < bitmap.getHeight(); y++) {
+                int a = 255;
+                int r = finalImage[count + 0];
+                int g = finalImage[count + 1];
+                int b = finalImage[count + 2];
+
+                deblurredBitmap.setPixel(x, y, Color.argb(a, r, g, b));
+
+                count ++;
+            }
+        }
+
 
         return deblurredBitmap;
     }
