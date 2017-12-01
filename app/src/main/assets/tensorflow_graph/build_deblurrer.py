@@ -21,11 +21,16 @@ image_width = 270
 image_height = 90
 batch_size = 1
 
+
+corrupted = tf.placeholder(tf.float32, (1,270, 90, 3), name='corrupted')
+deblurred = tf.placeholder(tf.float32, (1,270, 90, 3), name='deblurred')
+
 global_step = tf.Variable(0, trainable=False)
 
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
     network = model.initialise(image_width, image_height, autoencoder_network.autoencoder, batch_size, 0.001, global_step, training=False)
     saver = tf.train.Saver()
     saver.restore(sess, model_save_path)
+# sess = tf.Session()
 
     tf.train.write_graph(sess.graph, EXPORT_DIR, '../deblurring_graph.pb', as_text=False)

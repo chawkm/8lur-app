@@ -41,7 +41,7 @@ public class Home extends AppCompatActivity {
 
         // Tensorflow
         AssetManager assetManager = getAssets();
-        tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/graph_image.pb");
+        tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/deblurring_graph.pb");
 
 
         uploadPicButton = (Button) findViewById(R.id.uploadPicButton);
@@ -110,6 +110,9 @@ public class Home extends AppCompatActivity {
     }
 
     private Bitmap deblurImage(Bitmap bitmap) {
+        bitmap = Bitmap.createScaledBitmap(bitmap, 270, 90, true);
+
+
         int[] byteValues = new int[bitmap.getHeight() * bitmap.getWidth()];
         float[] floatValues = new float[byteValues.length * 3];
         bitmap.getPixels(byteValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());

@@ -6,21 +6,21 @@ import os
 # Parameters
 channels = 3
 
-dataset_path = 'data/hackedIms/uniform/'
+dataset_path = 'data/pretraining'
 image_width = 270
 image_height = 90
-batch_size = 20
+batch_size = 64
 
 # image_data = input_data.load_images(dataset_path, image_width, image_height)
 
-pretrain_steps_first_layer = 0
-pretrain_steps = 0
+# pretrain_steps_first_layer = 1000
+# pretrain_steps = 100
 
-training_dropout = 0.4
+training_dropout = 0.5
 
 start_learning_rate = 0.001
 steps_before_decay = 1000
-decay_rate = 0.999
+decay_rate = 0.995
 
 global_step = tf.Variable(0, trainable=False)
 alpha = tf.train.exponential_decay(start_learning_rate,
@@ -30,8 +30,8 @@ alpha = tf.train.exponential_decay(start_learning_rate,
                                    staircase=True)
 
 def summary_layer(net, name):
-    #tf.summary.image(name, tf.expand_dims(tf.transpose(net, [3, 0, 1, 2])[0], 3), max_outputs=1)
     pass
+    # tf.summary.image(name, tf.expand_dims(tf.transpose(net, [3, 0, 1, 2])[0], 3), max_outputs=1)
 
 def conv_layer_dropout(net, layer, out_channels, filter_dims, strides, padding, name, dropout=0.5, act_f = tf.nn.relu, pre=False):
     net = tf.layers.dropout(net, dropout)
@@ -81,7 +81,7 @@ for f in files:
 #         _, cost, summary = sess.run([step, loss, summary_op], feed_dict={placeholder: blurred})
 #         writer.add_summary(summary, i)
 #         print(i, "Pretrain " + name, cost)
-#
+
 
 def autoencoder(original, inputs, training):
     dropout = training_dropout if training else 0.0
@@ -95,33 +95,25 @@ def autoencoder(original, inputs, training):
     print(net.shape)
     # pretrain(pretrain_steps, step, loss, original, 'conv2', training)
 
-    net, step, loss = pre_train_conv_layer(net, tf.layers.conv2d, 256, [5, 5], (1, 1), 'conv3', dropout=dropout)
+    net, step, loss = pre_train_conv_layer(net, tf.layers.conv2d, 128, [5, 5], (1, 1), 'conv3', dropout=dropout)
     print(net.shape)
     # pretrain(pretrain_steps, step, loss, original, 'conv3', training)
 
-    # net, step, loss = pre_train_conv_layer(net, tf.layers.conv2d, 128, [5, 5], (1, 1), 'conv4', dropout=dropout)
-    # print(net.shape)
-    # pretrain(pretrain_steps, step, loss, original, 'conv4', training)
-
     # Decoder
-    net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, 256, [5, 5], (1, 1), 'deconv1', dropout=dropout)
+    net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, 128, [5, 5], (1, 1), 'deconv1', dropout=dropout)
     print(net.shape)
     # pretrain(pretrain_steps, step, loss, original, 'deconv1', training)
 
-    # net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, 256, [5, 5], (2, 2), 'deconv2', dropout=dropout)
-    # print(net.shape)
+    net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, 256, [5, 5], (3, 3), 'deconv2', dropout=dropout)
+    print(net.shape)
     # pretrain(pretrain_steps, step, loss, original, 'deconv2', training)
 
-    net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, 256, [5, 5], (3, 3), 'deconv3', dropout=dropout)
+    net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, channels, [5, 5], (3, 3), 'deconv3', dropout=dropout)
     print(net.shape)
     # pretrain(pretrain_steps, step, loss, original, 'deconv3', training)
 
-    net, step, loss  = pre_train_conv_layer(net, tf.layers.conv2d_transpose, channels, [5, 5], (3, 3), 'deconv4', dropout=dropout)
-    print(net.shape)
-    # pretrain(pretrain_steps, step, loss, original, 'deconv4', training)
-
 
     # Final tanh activation
-    net = tf.nn.tanh(net)
+    net = tf.nn.tanh(net, name = 'deblurred')
 
     return net
