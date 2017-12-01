@@ -14,10 +14,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.tensorflow.Operation;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Iterator;
 
 public class Home extends AppCompatActivity {
     private int TAKE_PICTURE_REQUEST_CODE = 0;
@@ -41,7 +43,7 @@ public class Home extends AppCompatActivity {
 
         // Tensorflow
         AssetManager assetManager = getAssets();
-        tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/deblurring_graph.pb");
+        tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/graph_optimized.pb");
 
 
         uploadPicButton = (Button) findViewById(R.id.uploadPicButton);
@@ -114,19 +116,24 @@ public class Home extends AppCompatActivity {
 
 
         int[] byteValues = new int[bitmap.getHeight() * bitmap.getWidth()];
-        float[] floatValues = new float[byteValues.length * 3];
+        float[] floatValues = new float[64 * byteValues.length * 3];
         bitmap.getPixels(byteValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-        for (int i = 0; i < byteValues.length; i++) {
-            final int val = byteValues[i];
-            floatValues[i * 3 + 0] = (val >> 16) & 0xff;
-            floatValues[i * 3 + 1] = (val >> 8) & 0xff;
-            floatValues[i * 3 + 2] = val & 0xff;
+        for (int i = 0; i < 64 * byteValues.length; i++) {
+            int i_ = i % byteValues.length;
+            final int val = byteValues[i_];
+            floatValues[i_ * 3 + 0] = (float) (((val >> 16) & 0xff) / 255.0);
+            floatValues[i_ * 3 + 1] = (float) (((val >> 8) & 0xff) / 255.0);
+            floatValues[i_ * 3 + 2] = (float) ((val & 0xff) / 255.0);
         }
 
-        tensorflow.feed("corrupted", floatValues, 1, bitmap.getHeight(), bitmap.getWidth(),3);
+        tensorflow.feed("corrupted", floatValues, 64, bitmap.getHeight(), bitmap.getWidth(),3);
 
-        String outputNode = "deblurred";
+        Iterator<Operation> iter = tensorflow.graph().operations();
+        while(iter.hasNext()) {
+            System.out.println(iter.next().name());
+        }
+        String outputNode = "Tanh";
         String[] outputNodes = {outputNode};
         tensorflow.run(outputNodes);
 
@@ -135,7 +142,7 @@ public class Home extends AppCompatActivity {
 
         int[] finalImage = new int[floatValues.length];
         for (int i = 0; i < byteValues.length*3; i++) {
-            finalImage[i] = (int) (output[i]);
+            finalImage[i] = (int) (255 * (output[i]));
         }
 //        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
 
@@ -146,9 +153,9 @@ public class Home extends AppCompatActivity {
         for(int y = 0; y < bitmap.getHeight(); y++) {
             for(int x = 0; x < bitmap.getWidth(); x++) {
                  int a = 255;
-                int r = (int) finalImage[count + 0];
-                int g = (int) finalImage[count + 1];
-                int b = (int) finalImage[count + 2];
+                int r = finalImage[count + 0];
+                int g = finalImage[count + 1];
+                int b = finalImage[count + 2];
                 deblurredBitmap.setPixel(x, y, Color.argb(a, r, g, b));
 
                 count = count+3;

@@ -114,6 +114,6 @@ def autoencoder(original, inputs, training):
 
 
     # Final tanh activation
-    net = tf.nn.tanh(net, name = 'deblurred')
+    net = tf.nn.tanh(net, name = 'deblurred2')
 
     return net
