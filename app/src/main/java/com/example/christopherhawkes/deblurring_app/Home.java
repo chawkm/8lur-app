@@ -69,8 +69,6 @@ public class Home extends AppCompatActivity {
                 startActivityForResult(takePicIntent, TAKE_PICTURE_REQUEST_CODE);
             }
         });
-
-//        deRiskedTensorFlow();
     }
 
     @Override
@@ -84,10 +82,10 @@ public class Home extends AppCompatActivity {
                 final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
 
                 // Deblur the image
-                // TODO: Set image bitmap to output of deblurImage
                 Bitmap deblurred = deblurImage(selectedImage);
 
-                imageView.setImageBitmap(deblurred);
+                imageView.setImageBitmap(selectedImage);
+                deblurredView.setImageBitmap(deblurred);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 Toast.makeText(Home.this, "Something went wrong uploading Image", Toast.LENGTH_LONG).show();
@@ -98,7 +96,6 @@ public class Home extends AppCompatActivity {
                 final Bitmap bitmap = (Bitmap) data.getExtras().get("data");
 
                 // Deblur the image
-                // TODO: Set image bitmap to output of deblurImage
                 Bitmap deblurred = deblurImage(bitmap);
                 imageView.setImageBitmap(bitmap);
                 deblurredView.setImageBitmap(deblurred);
@@ -127,7 +124,7 @@ public class Home extends AppCompatActivity {
             floatValues[i_ * 3 + 2] = (float) ((val & 0xff) / 255.0);
         }
 
-        tensorflow.feed("corrupted", floatValues, 64, bitmap.getHeight(), bitmap.getWidth(),3);
+        tensorflow.feed("corrupted", floatValues, 64, bitmap.getHeight(), bitmap.getWidth(), 3);
 
         Iterator<Operation> iter = tensorflow.graph().operations();
         while(iter.hasNext()) {
@@ -141,13 +138,12 @@ public class Home extends AppCompatActivity {
         tensorflow.fetch(outputNode, output);
 
         int[] finalImage = new int[floatValues.length];
-        for (int i = 0; i < byteValues.length*3; i++) {
+        for (int i = 0; i < byteValues.length * 3; i++) {
             finalImage[i] = (int) (255 * (output[i]));
         }
-//        Bitmap deblurredBitmap = Bitmap.createBitmap(finalImage, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.RGB_565);
 
-        //--------------
         Bitmap deblurredBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+
         // Iterate through each pixel in the difference bitmap
         int count = 0;
         for(int y = 0; y < bitmap.getHeight(); y++) {
@@ -158,30 +154,11 @@ public class Home extends AppCompatActivity {
                 int b = finalImage[count + 2];
                 deblurredBitmap.setPixel(x, y, Color.argb(a, r, g, b));
 
-                count = count+3;
+                count = count + 3;
             }
         }
 
-
         return deblurredBitmap;
-    }
-
-    private void deRiskedTensorFlow() {
-        /** One time initialization: */
-        AssetManager assetManager = getAssets();
-        TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(assetManager, "file:///android_asset/graph.pb");
-
-        float[] input = {5.0F};
-        tensorflow.feed("input", input);
-
-        String outputNode = "output";
-        String[] outputNodes = {outputNode};
-        tensorflow.run(outputNodes);
-
-        float[] output = new float[1];
-        tensorflow.fetch(outputNode, output);
-
-        System.out.println("fetched the output " + output[0]);
     }
 
     /**
