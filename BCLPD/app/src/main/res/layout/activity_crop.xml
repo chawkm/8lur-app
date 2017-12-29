@@ -6,4 +6,11 @@
     android:layout_height="match_parent"
     tools:context="com.c362.group8.bclpd.CropActivity">
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HEllo"
+        tools:layout_editor_absoluteX="226dp"
+        tools:layout_editor_absoluteY="127dp" />
 </android.support.constraint.ConstraintLayout>
