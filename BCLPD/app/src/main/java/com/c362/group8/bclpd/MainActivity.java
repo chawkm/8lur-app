@@ -1,12 +1,16 @@
 package com.c362.group8.bclpd;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -15,10 +19,12 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String PICTURE_TO_CROP = "PICTURE_TO_CROP";
+
     private int TAKE_PICTURE_REQUEST_CODE = 0;
     private int UPLOAD_PICTURE_REQUEST_CODE = 1;
-    ImageButton takePictureButton;
-    ImageButton uploadPictureButton;
+    private ImageButton takePictureButton;
+    private ImageButton uploadPictureButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +48,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Open the gallery to choose an image.
-                Intent uploadPictureIntent = new Intent(Intent.ACTION_PICK);
-                uploadPictureIntent.setType("image/*");
+                Intent uploadPictureIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(uploadPictureIntent, UPLOAD_PICTURE_REQUEST_CODE);
             }
         });
@@ -53,14 +58,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
 
-        Bitmap picture;
+        Bitmap picture = null;
         boolean error = false;
         try {
             if (resultCode == RESULT_OK && reqCode == UPLOAD_PICTURE_REQUEST_CODE) {
+                Log.d("upload", "Uploading picture...");
                 // Case 'upload picture'.
                 final Uri imageUri = data.getData();
-                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                picture = BitmapFactory.decodeStream(imageStream);
+                picture = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
             } else if (resultCode == RESULT_OK && reqCode == TAKE_PICTURE_REQUEST_CODE) {
                 // Case 'take picture'.
                 picture = (Bitmap) data.getExtras().get("data");
@@ -69,19 +74,24 @@ public class MainActivity extends AppCompatActivity {
                 error = true;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             error = true;
         }
 
-        if (!error) {
-            goToCropActivity();
+        if (!error && picture != null) {
+            goToCropActivity(picture);
         } else {
-            // Something went wrong, reload the view.
-            Toast.makeText(MainActivity.this, "Something went wrong. Try again.", Toast.LENGTH_LONG).show();
+            // Something went wrong, stay in the main view.
+            Toast.makeText(
+                    MainActivity.this,
+                    "Something went wrong. Try again.",
+                    Toast.LENGTH_LONG).show();
         }
     }
 
-    private void goToCropActivity() {
+    private void goToCropActivity(Bitmap picture) {
         Intent intent = new Intent(this, CropActivity.class);
+        intent.putExtra(PICTURE_TO_CROP, picture);
         startActivity(intent);
     }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BCLPD</string>
+    <string name="deblur">DEBLUR</string>
 </resources>
