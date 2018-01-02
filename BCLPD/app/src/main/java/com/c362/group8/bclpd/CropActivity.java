@@ -29,6 +29,8 @@ public class CropActivity extends AppCompatActivity {
         // Put image in the crop view.
         cropImageView = findViewById(R.id.cropImageView);
         cropImageView.setImageBitmap(pictureToCrop);
+        cropImageView.setFixedAspectRatio(true);
+        cropImageView.setAspectRatio(3, 1);
 
         finishedCroppingButton = findViewById(R.id.finishedCroppingButton);
         finishedCroppingButton.setOnClickListener(new View.OnClickListener() {
