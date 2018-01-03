@@ -4,9 +4,12 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import org.tensorflow.Operation;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
@@ -15,6 +18,7 @@ import java.util.Iterator;
 
 public class ResultActivity extends AppCompatActivity {
     private ImageView licensePlateView;
+    private ProgressBar spinner;
 
     private Bitmap licensePlate;
     private static final int width = 270;
@@ -31,22 +35,24 @@ public class ResultActivity extends AppCompatActivity {
         // Get the blurred license plate from the crop activity.
         Intent intent = getIntent();
         licensePlate = intent.getParcelableExtra(CropActivity.BLURRED_LICENSE_PLATE);
-
-        // Deblur license plate.
-        AssetManager assetManager = getAssets();
-        tensorflow = new TensorFlowInferenceInterface(assetManager, modelPath);
-        licensePlate = deblurLicensePlate(licensePlate);
-
-        // Load license plate to the view.
         licensePlateView = findViewById(R.id.deblurredLicensePlate);
         licensePlateView.setImageBitmap(licensePlate);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        spinner = findViewById(R.id.progressBar);
+
+        new BackgroundDeblurring().execute();
     }
 
     // Runs the model on the image.
     private Bitmap deblurLicensePlate(Bitmap licensePlate) {
         licensePlate = Bitmap.createScaledBitmap(licensePlate, width, height, true);
 
-        int[] byteValues = new int[licensePlate.getHeight() * licensePlate.getWidth()];
+        int[] byteValues = new int[width * height];
         float[] floatValues = new float[64 * byteValues.length * 3];
         licensePlate.getPixels(byteValues, 0, width, 0, 0, width, height);
 
@@ -94,5 +100,27 @@ public class ResultActivity extends AppCompatActivity {
         }
 
         return deblurredLicensePlate;
+    }
+
+    private class BackgroundDeblurring extends AsyncTask<Void, Void, Integer> {
+        @Override
+        protected void onPreExecute() {
+            spinner.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPostExecute(Integer result) {
+            spinner.setVisibility(View.GONE);
+            licensePlateView.setImageBitmap(licensePlate);
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            AssetManager assetManager = getAssets();
+            tensorflow = new TensorFlowInferenceInterface(assetManager, modelPath);
+            licensePlate = deblurLicensePlate(licensePlate);
+
+            return 0;
+        }
     }
 }
