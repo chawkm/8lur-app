@@ -1,21 +1,16 @@
 package com.c362.group8.bclpd;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,8 +43,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Open the gallery to choose an image.
-                Intent uploadPictureIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(uploadPictureIntent, UPLOAD_PICTURE_REQUEST_CODE);
+                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+                photoPickerIntent.setType("image/*");
+                startActivityForResult(photoPickerIntent, UPLOAD_PICTURE_REQUEST_CODE);
             }
         });
     }
@@ -62,10 +58,11 @@ public class MainActivity extends AppCompatActivity {
         boolean error = false;
         try {
             if (resultCode == RESULT_OK && reqCode == UPLOAD_PICTURE_REQUEST_CODE) {
-                Log.d("upload", "Uploading picture...");
                 // Case 'upload picture'.
                 final Uri imageUri = data.getData();
-                picture = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                goToCropActivity(selectedImage);
             } else if (resultCode == RESULT_OK && reqCode == TAKE_PICTURE_REQUEST_CODE) {
                 // Case 'take picture'.
                 picture = (Bitmap) data.getExtras().get("data");

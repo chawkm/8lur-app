@@ -50,6 +50,7 @@ public class ResultActivity extends AppCompatActivity {
         // Get the blurred license plate from the crop activity.
         Intent intent = getIntent();
         licensePlate = intent.getParcelableExtra(CropActivity.BLURRED_LICENSE_PLATE);
+        licensePlate = Bitmap.createScaledBitmap(licensePlate, width, height, true);
         licensePlateView = findViewById(R.id.deblurredLicensePlate);
         licensePlateView.setImageBitmap(licensePlate);
 
@@ -146,8 +147,6 @@ public class ResultActivity extends AppCompatActivity {
 
         // Runs the model on the image.
         private Bitmap deblurLicensePlate(Bitmap licensePlate) {
-            licensePlate = Bitmap.createScaledBitmap(licensePlate, width, height, true);
-
             int[] byteValues = new int[width * height];
             float[] floatValues = new float[64 * byteValues.length * 3];
             licensePlate.getPixels(byteValues, 0, width, 0, 0, width, height);
