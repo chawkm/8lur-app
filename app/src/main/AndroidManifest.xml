@@ -16,6 +16,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".CropActivity" />
-        <activity android:name=".ResultActivity"></activity>
+        <activity android:name=".ResultActivity" />
     </application>
 </manifest>
