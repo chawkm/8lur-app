@@ -12,10 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_weight="1"
-        custom:cropMaxCropResultHeightPX="1000"
-        custom:cropMaxCropResultWidthPX="1000"
-        custom:cropMinCropResultHeightPX="10"
-        custom:cropMinCropResultWidthPX="10" />
+        custom:cropMinCropResultHeightPX="1"
+        custom:cropMinCropResultWidthPX="1" />
 
     <Button
         android:id="@+id/finishedCroppingButton"
