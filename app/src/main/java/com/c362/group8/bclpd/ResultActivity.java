@@ -98,6 +98,11 @@ public class ResultActivity extends AppCompatActivity {
                             "Could not save the image to the gallery.",
                             Toast.LENGTH_LONG).show();
                 } else {
+                    // Success.
+                    Toast.makeText(
+                            ResultActivity.this,
+                            "License plate saved!",
+                            Toast.LENGTH_LONG).show();
                     goToMainActivity();
                 }
             }

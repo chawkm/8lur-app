@@ -10,7 +10,7 @@
         android:id="@+id/deblurredLicensePlate"
         android:layout_width="270dp"
         android:layout_height="90dp"
-        android:layout_marginTop="208dp"
+        app:layout_constraintBottom_toTopOf="@+id/space"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -21,7 +21,7 @@
         android:id="@+id/progressView"
         android:layout_width="270dp"
         android:layout_height="90dp"
-        android:layout_marginTop="208dp"
+        app:layout_constraintBottom_toTopOf="@+id/space"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -32,11 +32,12 @@
         android:id="@+id/saveButton"
         android:layout_width="270dp"
         android:layout_height="60dp"
-        android:layout_marginTop="388dp"
         android:text="DEBLURRING..."
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/space" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -45,8 +46,17 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toTopOf="@+id/deblurredLicensePlate"
         app:layout_constraintEnd_toStartOf="@+id/deblurredLicensePlate"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/deblurredLicensePlate"
         app:layout_constraintTop_toBottomOf="@+id/deblurredLicensePlate" />
+
+    <Space
+        android:id="@+id/space"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="400dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
