@@ -4,8 +4,10 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -28,6 +30,7 @@ public class ResultActivity extends AppCompatActivity {
     private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_CODE = 0;
 
     private ImageView licensePlateView;
+    private ImageView progressView;
     private ProgressBar spinner;
     private Button saveButton;
 
@@ -56,6 +59,12 @@ public class ResultActivity extends AppCompatActivity {
 
         // Spinner.
         spinner = findViewById(R.id.progressBar);
+        spinner.getIndeterminateDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+
+        // Progress view
+        progressView = findViewById(R.id.progressView);
+        progressView.setColorFilter(Color.BLACK);
+        progressView.setAlpha(0f);
 
         // Save button.
         saveButton = findViewById(R.id.saveButton);
@@ -127,12 +136,15 @@ public class ResultActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             spinner.setVisibility(View.VISIBLE);
+            progressView.animate().alpha(1f).setDuration(15000).setListener(null);
         }
 
         @Override
         protected void onPostExecute(Integer result) {
             spinner.setVisibility(View.GONE);
             licensePlateView.setImageBitmap(licensePlate);
+            progressView.setVisibility(View.GONE);
+            saveButton.setText("SAVE");
             saveButton.setEnabled(true);
         }
 
