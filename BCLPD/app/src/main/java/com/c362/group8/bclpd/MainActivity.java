@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,7 +12,10 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
     public static final String PICTURE_TO_CROP = "PICTURE_TO_CROP";
@@ -59,10 +63,9 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (resultCode == RESULT_OK && reqCode == UPLOAD_PICTURE_REQUEST_CODE) {
                 // Case 'upload picture'.
-                final Uri imageUri = data.getData();
-                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                goToCropActivity(selectedImage);
+                Uri imageUri = data.getData();
+                InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                picture = BitmapFactory.decodeStream(imageStream);
             } else if (resultCode == RESULT_OK && reqCode == TAKE_PICTURE_REQUEST_CODE) {
                 // Case 'take picture'.
                 picture = (Bitmap) data.getExtras().get("data");
@@ -87,8 +90,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void goToCropActivity(Bitmap picture) {
+        // Save the image temporarily.
+        File dir = new File(Environment.getExternalStorageDirectory() + "/transfer/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        OutputStream outputStream = null;
+        File file = new File(Environment.getExternalStorageDirectory() + "/transfer/picture.png");
+        try {
+            outputStream = new FileOutputStream(file);
+            picture.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         Intent intent = new Intent(this, CropActivity.class);
-        intent.putExtra(PICTURE_TO_CROP, picture);
+        intent.putExtra(PICTURE_TO_CROP, file.getAbsolutePath());
         startActivity(intent);
     }
 }
